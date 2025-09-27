@@ -172,10 +172,7 @@ export default function AdminPanel({ teams = [], matches = [], setTeams, setMatc
       <div className="bg-gray-800 border-b border-gray-700 mb-6">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Free Football Live Stream - Admin</h1>
-              <p className="text-gray-400">Manage matches and streams</p>
-            </div>
+            
             <div className="text-sm text-gray-400">
               {matches.length} matches • {teams.length} teams
               {isLoading && <span className="ml-2 text-yellow-400">Saving...</span>}

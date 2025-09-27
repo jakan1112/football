@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import AdminPanel from '../../../components/adminpanel';
+import AdminLayout from '../../../components/adminlayout';
 import { Team, Match } from '../../../types';
 import { getTeams, getMatches } from '../../../lib/supabase-service';
 
@@ -41,7 +41,7 @@ export default function AdminPage() {
   }
 
   return (
-    <AdminPanel 
+    <AdminLayout 
       teams={teams}
       matches={matches}
       setTeams={setTeams}
