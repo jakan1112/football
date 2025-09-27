@@ -1,4 +1,5 @@
 // components/AdminPanel.tsx
+"use client";
 import { useState } from 'react';
 import TeamForm from './teamform';
 import MatchForm from './matchform';
@@ -7,91 +8,118 @@ import TeamListAdmin from './teamlistadmin';
 import { Team, Match } from '../types';
 import { addMatch, updateMatch, deleteMatch, addTeam, updateTeam, deleteTeam, getTeams, getMatches } from '../lib/supabase-service';
 
+type AdminTab = 'matches' | 'add-match' | 'teams' | 'add-team';
+
 interface AdminPanelProps {
-  teams: Team[];
-  matches: Match[];
+  teams?: Team[];
+  matches?: Match[];
   setTeams: (teams: Team[]) => void;
   setMatches: (matches: Match[]) => void;
 }
-
-type AdminTab = 'matches' | 'add-match' | 'teams' | 'add-team';
-
-export default function AdminPanel({ teams, matches, setTeams, setMatches }: AdminPanelProps) {
+export default function AdminPanel({ teams = [], matches = [], setTeams, setMatches }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>('matches');
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleAddTeam = async (teamData: Omit<Team, 'id'>) => {
-    if (editingTeam) {
-      const updatedTeam = await updateTeam(editingTeam.id, teamData);
-      if (updatedTeam) {
-        // Refresh teams list
-        const updatedTeams = await getTeams();
-        setTeams(updatedTeams);
-        setEditingTeam(null);
-        setActiveTab('teams');
+    setIsLoading(true);
+    try {
+      if (editingTeam) {
+        const updatedTeam = await updateTeam(editingTeam.id, teamData);
+        if (updatedTeam) {
+          const updatedTeams = await getTeams();
+          setTeams(updatedTeams);
+          setEditingTeam(null);
+          setActiveTab('teams');
+        }
+      } else {
+        const newTeam = await addTeam(teamData);
+        if (newTeam) {
+          const updatedTeams = await getTeams();
+          setTeams(updatedTeams);
+          setActiveTab('teams');
+        }
       }
-    } else {
-      const newTeam = await addTeam(teamData);
-      if (newTeam) {
-        // Refresh teams list
-        const updatedTeams = await getTeams();
-        setTeams(updatedTeams);
-        setActiveTab('teams');
-      }
+    } catch (error) {
+      console.error('Error saving team:', error);
+      alert('Error saving team. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleAddMatch = async (matchData: Omit<Match, 'id' | 'status' | 'homeScore' | 'awayScore' | 'lineups' | 'blogPosts'>) => {
-    const matchWithDefaults = {
-      ...matchData,
-      status: 'upcoming' as const,
-      homeScore: 0,
-      awayScore: 0,
-      lineups: { home: [], away: [] },
-      blogPosts: []
-    };
+    setIsLoading(true);
+    try {
+      const matchWithDefaults = {
+        ...matchData,
+        status: 'upcoming' as const,
+        homeScore: 0,
+        awayScore: 0,
+        lineups: { home: [], away: [] },
+        blogPosts: []
+      };
 
-    if (editingMatch) {
-      const updatedMatch = await updateMatch(editingMatch.id, matchData);
-      if (updatedMatch) {
-        // Refresh matches list
-        const updatedMatches = await getMatches();
-        setMatches(updatedMatches);
-        setEditingMatch(null);
-        setActiveTab('matches');
+      if (editingMatch) {
+        const updatedMatch = await updateMatch(editingMatch.id, matchData);
+        if (updatedMatch) {
+          const updatedMatches = await getMatches();
+          setMatches(updatedMatches);
+          setEditingMatch(null);
+          setActiveTab('matches');
+        }
+      } else {
+        const newMatch = await addMatch(matchWithDefaults);
+        if (newMatch) {
+          const updatedMatches = await getMatches();
+          setMatches(updatedMatches);
+          setActiveTab('matches');
+        }
       }
-    } else {
-      const newMatch = await addMatch(matchWithDefaults);
-      if (newMatch) {
-        // Refresh matches list
-        const updatedMatches = await getMatches();
-        setMatches(updatedMatches);
-        setActiveTab('matches');
-      }
+    } catch (error) {
+      console.error('Error saving match:', error);
+      alert('Error saving match. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleUpdateMatch = async (matchId: number, updates: Partial<Match>) => {
-    const updatedMatch = await updateMatch(matchId, updates);
-    if (updatedMatch) {
-      // Refresh matches list
-      const updatedMatches = await getMatches();
-      setMatches(updatedMatches);
+    setIsLoading(true);
+    try {
+      const updatedMatch = await updateMatch(matchId, updates);
+      if (updatedMatch) {
+        const updatedMatches = await getMatches();
+        setMatches(updatedMatches);
+      }
+    } catch (error) {
+      console.error('Error updating match:', error);
+      alert('Error updating match. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDeleteMatch = async (matchId: number) => {
-    const success = await deleteMatch(matchId);
-    if (success) {
-      // Refresh matches list
-      const updatedMatches = await getMatches();
-      setMatches(updatedMatches);
+    if (!confirm('Are you sure you want to delete this match?')) return;
+    
+    setIsLoading(true);
+    try {
+      const success = await deleteMatch(matchId);
+      if (success) {
+        const updatedMatches = await getMatches();
+        setMatches(updatedMatches);
+      }
+    } catch (error) {
+      console.error('Error deleting match:', error);
+      alert('Error deleting match. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDeleteTeam = async (teamId: number) => {
-    // Check if team is used in any matches
     const isTeamUsed = matches.some(match => 
       match.homeTeamId === teamId || match.awayTeamId === teamId
     );
@@ -101,11 +129,20 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
       return;
     }
     
-    const success = await deleteTeam(teamId);
-    if (success) {
-      // Refresh teams list
-      const updatedTeams = await getTeams();
-      setTeams(updatedTeams);
+    if (!confirm('Are you sure you want to delete this team?')) return;
+    
+    setIsLoading(true);
+    try {
+      const success = await deleteTeam(teamId);
+      if (success) {
+        const updatedTeams = await getTeams();
+        setTeams(updatedTeams);
+      }
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      alert('Error deleting team. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -130,42 +167,53 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
   };
 
   return (
-   <div>
+    <div>
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700 mb-6">
         <div className="container mx-auto px-4">
-          <div className="flex overflow-x-auto space-x-4">
+          <div className="flex items-center justify-between py-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Free Football Live Stream - Admin</h1>
+              <p className="text-gray-400">Manage matches and streams</p>
+            </div>
+            <div className="text-sm text-gray-400">
+              {matches.length} matches • {teams.length} teams
+              {isLoading && <span className="ml-2 text-yellow-400">Saving...</span>}
+            </div>
+          </div>
+
+          <div className="flex overflow-x-auto space-x-4 pb-2">
             <button 
-              className={`py-4 px-4 font-medium whitespace-nowrap border-b-2 ${
-                activeTab === 'matches' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400'
+              className={`py-3 px-4 font-medium whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === 'matches' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-white'
               }`}
               onClick={() => handleTabChange('matches')}
             >
-              Manage Matches
+              📋 Manage Matches
             </button>
             <button 
-              className={`py-4 px-4 font-medium whitespace-nowrap border-b-2 ${
-                activeTab === 'add-match' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400'
+              className={`py-3 px-4 font-medium whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === 'add-match' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-white'
               }`}
               onClick={() => handleTabChange('add-match')}
             >
-              {editingMatch ? 'Edit Match' : 'Add Match'}
+              ⚽ {editingMatch ? 'Edit Match' : 'Add Match'}
             </button>
             <button 
-              className={`py-4 px-4 font-medium whitespace-nowrap border-b-2 ${
-                activeTab === 'teams' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400'
+              className={`py-3 px-4 font-medium whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === 'teams' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-white'
               }`}
               onClick={() => handleTabChange('teams')}
             >
-              Manage Teams
+            👥 Manage Teams
             </button>
             <button 
-              className={`py-4 px-4 font-medium whitespace-nowrap border-b-2 ${
-                activeTab === 'add-team' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400'
+              className={`py-3 px-4 font-medium whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === 'add-team' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-white'
               }`}
               onClick={() => handleTabChange('add-team')}
             >
-              {editingTeam ? 'Edit Team' : 'Add Team'}
+              ➕ {editingTeam ? 'Edit Team' : 'Add Team'}
             </button>
           </div>
         </div>
@@ -185,20 +233,25 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
         {activeTab === 'add-match' && (
           <div>
             {editingMatch && (
-              <div className="mb-4 p-4 bg-yellow-600 rounded-lg">
-                <p className="font-medium">Editing Match: {teams.find(t => t.id === editingMatch.homeTeamId)?.name} vs {teams.find(t => t.id === editingMatch.awayTeamId)?.name}</p>
-                <button 
-                  onClick={cancelEditing}
-                  className="text-sm underline mt-1"
-                >
-                  Cancel Edit
-                </button>
+              <div className="mb-6 p-4 bg-yellow-600 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <p className="font-medium">
+                    Editing Match: {teams.find(t => t.id === editingMatch.homeTeamId)?.name} vs {teams.find(t => t.id === editingMatch.awayTeamId)?.name}
+                  </p>
+                  <button 
+                    onClick={cancelEditing}
+                    className="bg-yellow-700 hover:bg-yellow-800 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Cancel Edit
+                  </button>
+                </div>
               </div>
             )}
             <MatchForm 
               teams={teams} 
               onSubmit={handleAddMatch}
               editingMatch={editingMatch}
+              isLoading={isLoading}
             />
           </div>
         )}
@@ -214,19 +267,22 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
         {activeTab === 'add-team' && (
           <div>
             {editingTeam && (
-              <div className="mb-4 p-4 bg-yellow-600 rounded-lg">
-                <p className="font-medium">Editing Team: {editingTeam.name}</p>
-                <button 
-                  onClick={cancelEditing}
-                  className="text-sm underline mt-1"
-                >
-                  Cancel Edit
-                </button>
+              <div className="mb-6 p-4 bg-yellow-600 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <p className="font-medium">Editing Team: {editingTeam.name}</p>
+                  <button 
+                    onClick={cancelEditing}
+                    className="bg-yellow-700 hover:bg-yellow-800 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Cancel Edit
+                  </button>
+                </div>
               </div>
             )}
             <TeamForm 
               onSubmit={handleAddTeam}
               editingTeam={editingTeam}
+              isLoading={isLoading}
             />
           </div>
         )}

@@ -4,8 +4,8 @@ import { Match, Team, BlogPost } from '../types';
 
 interface MatchCardAdminProps {
   match: Match;
-  homeTeam: Team | undefined;
-  awayTeam: Team | undefined;
+  homeTeam: Team;
+  awayTeam: Team;
   onUpdateMatch: (matchId: number, updates: Partial<Match>) => void;
   onDeleteMatch: (matchId: number) => void;
   onEditMatch: (match: Match) => void;
@@ -13,11 +13,9 @@ interface MatchCardAdminProps {
 
 export default function MatchCardAdmin({ match, homeTeam, awayTeam, onUpdateMatch, onDeleteMatch, onEditMatch }: MatchCardAdminProps) {
   const [activeSection, setActiveSection] = useState<'main' | 'lineup' | 'blog'>('main');
-  const [homeLineup, setHomeLineup] = useState(match.lineups.home.join('\n'));
-  const [awayLineup, setAwayLineup] = useState(match.lineups.away.join('\n'));
+  const [homeLineup, setHomeLineup] = useState((match.lineups?.home || []).join('\n'));
+  const [awayLineup, setAwayLineup] = useState((match.lineups?.away || []).join('\n'));
   const [newBlogContent, setNewBlogContent] = useState('');
-
-  if (!homeTeam || !awayTeam) return null;
 
   const statusColors: Record<Match['status'], string> = {
     upcoming: 'bg-yellow-500',
@@ -25,10 +23,9 @@ export default function MatchCardAdmin({ match, homeTeam, awayTeam, onUpdateMatc
     finished: 'bg-green-500'
   };
 
-  // FIXED: Proper score update function
   const updateScore = (team: 'home' | 'away', action: 'increment' | 'decrement') => {
-    const currentHomeScore = match.homeScore;
-    const currentAwayScore = match.awayScore;
+    const currentHomeScore = match.homeScore || 0;
+    const currentAwayScore = match.awayScore || 0;
     
     let newHomeScore = currentHomeScore;
     let newAwayScore = currentAwayScore;
@@ -44,7 +41,6 @@ export default function MatchCardAdmin({ match, homeTeam, awayTeam, onUpdateMatc
       awayScore: newAwayScore
     });
 
-    // Add blog post for goal
     if (action === 'increment') {
       addBlogPost('goal', `Goal! ${team === 'home' ? homeTeam.name : awayTeam.name} scores!`);
     }
@@ -71,16 +67,18 @@ export default function MatchCardAdmin({ match, homeTeam, awayTeam, onUpdateMatc
       type: type
     };
 
+    const currentPosts = match.blogPosts || [];
     onUpdateMatch(match.id, {
-      blogPosts: [...match.blogPosts, blogPost]
+      blogPosts: [...currentPosts, blogPost]
     });
 
     if (!content) setNewBlogContent('');
   };
 
   const deleteBlogPost = (postId: number) => {
+    const currentPosts = match.blogPosts || [];
     onUpdateMatch(match.id, {
-      blogPosts: match.blogPosts.filter(post => post.id !== postId)
+      blogPosts: currentPosts.filter(post => post.id !== postId)
     });
   };
 
@@ -320,5 +318,6 @@ export default function MatchCardAdmin({ match, homeTeam, awayTeam, onUpdateMatc
         </div>
       )}
     </div>
+   
   );
 }

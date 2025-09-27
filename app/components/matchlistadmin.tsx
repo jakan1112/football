@@ -3,7 +3,6 @@ import { useState } from 'react';
 import MatchCardAdmin from './matchcardadmin';
 import { Match, Team } from '../types';
 
-
 interface MatchListAdminProps {
   matches: Match[];
   teams: Team[];
@@ -14,15 +13,17 @@ interface MatchListAdminProps {
 
 type MatchFilter = 'all' | 'upcoming' | 'live' | 'finished';
 
-export default function MatchListAdmin({ matches, teams, onUpdateMatch, onDeleteMatch, onEditMatch }: MatchListAdminProps) {
+export default function MatchListAdmin({ matches = [], teams = [], onUpdateMatch, onDeleteMatch, onEditMatch }: MatchListAdminProps) {
   const [filter, setFilter] = useState<MatchFilter>('all');
 
-  const filteredMatches = matches.filter(match => {
+  // Safe filtering with default empty array
+  const filteredMatches = (matches || []).filter(match => {
     if (filter === 'all') return true;
     return match.status === filter;
   });
 
-  const getTeam = (id: number): Team | undefined => teams.find(team => team.id === id);
+  const getTeam = (id: number): Team | undefined => 
+    (teams || []).find(team => team.id === id);
 
   return (
     <div>
@@ -75,26 +76,45 @@ export default function MatchListAdmin({ matches, teams, onUpdateMatch, onDelete
         </div>
         
         <div className="text-gray-400">
-          {matches.length} match{matches.length !== 1 ? 'es' : ''} total
+          {(matches || []).length} match{(matches || []).length !== 1 ? 'es' : ''} total
         </div>
       </div>
 
       <div className="space-y-6">
         {filteredMatches.length > 0 ? (
-          filteredMatches.map(match => (
-            <MatchCardAdmin
-              key={match.id}
-              match={match}
-              homeTeam={getTeam(match.homeTeamId)}
-              awayTeam={getTeam(match.awayTeamId)}
-              onUpdateMatch={onUpdateMatch}
-              onDeleteMatch={onDeleteMatch}
-              onEditMatch={onEditMatch}
-            />
-          ))
+          filteredMatches.map(match => {
+            const homeTeam = getTeam(match.homeTeamId);
+            const awayTeam = getTeam(match.awayTeamId);
+            
+            // Only render if both teams exist
+            if (!homeTeam || !awayTeam) return null;
+            
+            return (
+              <MatchCardAdmin
+                key={match.id}
+                match={match}
+                homeTeam={homeTeam}
+                awayTeam={awayTeam}
+                onUpdateMatch={onUpdateMatch}
+                onDeleteMatch={onDeleteMatch}
+                onEditMatch={onEditMatch}
+              />
+            );
+          })
         ) : (
-          <div className="text-center py-10 text-gray-400 bg-gray-800 rounded-lg">
-            No matches found. Add some matches to get started!
+          <div className="text-center py-16 bg-gray-800 rounded-lg">
+            <div className="text-gray-400 text-lg mb-2">
+              {matches && matches.length > 0 
+                ? `No ${filter} matches found` 
+                : 'No matches created yet'
+              }
+            </div>
+            <p className="text-gray-500">
+              {matches && matches.length > 0 
+                ? 'Try changing the filter or add new matches' 
+                : 'Start by adding your first match'
+              }
+            </p>
           </div>
         )}
       </div>
