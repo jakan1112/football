@@ -5,6 +5,7 @@ import MatchForm from './matchform';
 import MatchListAdmin from './matchlistadmin';
 import TeamListAdmin from './teamlistadmin';
 import { Team, Match } from '../types';
+import { addMatch, updateMatch, deleteMatch, addTeam, updateTeam, deleteTeam } from '../lib/data-service';
 
 interface AdminPanelProps {
   teams: Team[];
@@ -20,63 +21,54 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
 
-  const addTeam = (teamData: Omit<Team, 'id'>) => {
-    if (editingTeam) {
-      // Update existing team
-      setTeams(teams.map(team => 
-        team.id === editingTeam.id ? { ...team, ...teamData } : team
-      ));
-      setEditingTeam(null);
-      setActiveTab('teams');
-    } else {
-      // Add new team
-      const newTeam: Team = {
-        id: Date.now(),
-        ...teamData
-      };
-      setTeams([...teams, newTeam]);
-      setActiveTab('teams');
+  const handleAddTeam = async (teamData: Omit<Team, 'id'>) => {
+    const success = await addTeam(teamData);
+    if (success) {
+      // Refresh teams list
+      const updatedTeams = await getTeams();
+      setTeams(updatedTeams);
+      
+      if (editingTeam) {
+        setEditingTeam(null);
+        setActiveTab('teams');
+      }
     }
   };
 
-  const addMatch = (matchData: Omit<Match, 'id' | 'status' | 'homeScore' | 'awayScore' | 'lineups' | 'blogPosts'>) => {
-    if (editingMatch) {
-      // Update existing match
-      setMatches(matches.map(match => 
-        match.id === editingMatch.id ? { ...match, ...matchData } : match
-      ));
-      setEditingMatch(null);
-      setActiveTab('matches');
-    } else {
-      // Add new match
-      const newMatch: Match = {
-        id: Date.now(),
-        ...matchData,
-        status: 'upcoming',
-        homeScore: 0,
-        awayScore: 0,
-        lineups: {
-          home: [],
-          away: []
-        },
-        blogPosts: []
-      };
-      setMatches([...matches, newMatch]);
-      setActiveTab('matches');
+  const handleAddMatch = async (matchData: Omit<Match, 'id' | 'status' | 'homeScore' | 'awayScore' | 'lineups' | 'blogPosts'>) => {
+    const success = await addMatch(matchData);
+    if (success) {
+      // Refresh matches list
+      const updatedMatches = await getMatches();
+      setMatches(updatedMatches);
+      
+      if (editingMatch) {
+        setEditingMatch(null);
+        setActiveTab('matches');
+      }
     }
   };
 
-  const updateMatch = (matchId: number, updates: Partial<Match>) => {
-    setMatches(matches.map(match => 
-      match.id === matchId ? { ...match, ...updates } : match
-    ));
+  const handleUpdateMatch = async (matchId: number, updates: Partial<Match>) => {
+    const success = await updateMatch(matchId, updates);
+    if (success) {
+      // Refresh matches list
+      const updatedMatches = await getMatches();
+      setMatches(updatedMatches);
+    }
   };
 
-  const deleteMatch = (matchId: number) => {
-    setMatches(matches.filter(match => match.id !== matchId));
+  const handleDeleteMatch = async (matchId: number) => {
+    const success = await deleteMatch(matchId);
+    if (success) {
+      // Refresh matches list
+      const updatedMatches = await getMatches();
+      setMatches(updatedMatches);
+    }
   };
 
-  const deleteTeam = (teamId: number) => {
+  const handleDeleteTeam = async (teamId: number) => {
+    // Check if team is used in any matches
     const isTeamUsed = matches.some(match => 
       match.homeTeamId === teamId || match.awayTeamId === teamId
     );
@@ -86,7 +78,12 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
       return;
     }
     
-    setTeams(teams.filter(team => team.id !== teamId));
+    const success = await deleteTeam(teamId);
+    if (success) {
+      // Refresh teams list
+      const updatedTeams = await getTeams();
+      setTeams(updatedTeams);
+    }
   };
 
   const startEditingMatch = (match: Match) => {
@@ -104,9 +101,20 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
     setEditingTeam(null);
   };
 
-  // Separate function to handle tab changes without canceling edits
   const handleTabChange = (tab: AdminTab) => {
     setActiveTab(tab);
+    cancelEditing();
+  };
+
+  // Import get functions inside the component
+  const getTeams = async () => {
+    const { getTeams } = await import('../lib/data-service');
+    return await getTeams();
+  };
+
+  const getMatches = async () => {
+    const { getMatches } = await import('../lib/data-service');
+    return await getMatches();
   };
 
   return (
@@ -156,8 +164,8 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
           <MatchListAdmin 
             matches={matches} 
             teams={teams}
-            onUpdateMatch={updateMatch}
-            onDeleteMatch={deleteMatch}
+            onUpdateMatch={handleUpdateMatch}
+            onDeleteMatch={handleDeleteMatch}
             onEditMatch={startEditingMatch}
           />
         )}
@@ -177,7 +185,7 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
             )}
             <MatchForm 
               teams={teams} 
-              onSubmit={addMatch}
+              onSubmit={handleAddMatch}
               editingMatch={editingMatch}
             />
           </div>
@@ -187,7 +195,7 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
           <TeamListAdmin 
             teams={teams}
             onEditTeam={startEditingTeam}
-            onDeleteTeam={deleteTeam}
+            onDeleteTeam={handleDeleteTeam}
           />
         )}
 
@@ -205,7 +213,7 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
               </div>
             )}
             <TeamForm 
-              onSubmit={addTeam}
+              onSubmit={handleAddTeam}
               editingTeam={editingTeam}
             />
           </div>
