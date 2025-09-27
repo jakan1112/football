@@ -67,8 +67,9 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
       <div className="bg-gray-800 border-b border-gray-700">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-white mb-2">Football Stream Hub</h1>
-            <p className="text-gray-300">Live Football Matches Streaming</p>
+          
+<h1 className="text-2xl font-bold text-white mb-2">Free Football Live Stream</h1>
+<p className="text-gray-300">Watch live football matches for free</p>
           </div>
 
           {/* Time Filters */}

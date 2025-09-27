@@ -2,9 +2,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AdminLayout from '../components/adminlayout';
-import ViewerPanel from '../components/viewerpanel';
-import { Team, Match } from '../types';
+import AdminLayout from '../../../components/adminlayout';
+import ViewerPanel from '../../../components/viewerpanel';
+import { Team, Match } from '../../../types';
 
 export default function Home() {
   const [teams, setTeams] = useState<Team[]>([]);

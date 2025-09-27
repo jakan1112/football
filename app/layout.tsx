@@ -6,8 +6,9 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Football Stream Hub',
-  description: 'Your destination for live football streaming',
+  title: 'Free Football Live Stream',
+  description: 'Watch live football matches for free. Real-time streaming with live scores and updates.',
+  keywords: 'football, live stream, soccer, matches, streaming, free football',
 };
 
 export default function RootLayout({
@@ -17,9 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        {children}
-      </body>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }

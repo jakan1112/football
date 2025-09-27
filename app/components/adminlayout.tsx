@@ -14,7 +14,8 @@ interface AdminLayoutProps {
   setMatches: (matches: Match[]) => void;
 }
 
-const ADMIN_PASSWORD = 'admin123';
+
+const ADMIN_PASSWORD = 'yallasirajshoot@jazz';
 
 export default function AdminLayout({ teams, matches, setTeams, setMatches }: AdminLayoutProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -85,8 +86,8 @@ export default function AdminLayout({ teams, matches, setTeams, setMatches }: Ad
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
-              <p className="text-gray-400">Manage matches and streams</p>
+              <h1 className="text-2xl font-bold text-white">Free Football Live Stream - Admin</h1>
+<p className="text-gray-400">Manage matches and streams</p>
               <div className="flex items-center space-x-2 mt-1">
                 <div className={`w-2 h-2 rounded-full ${
                   saveStatus === 'saving' ? 'bg-yellow-500 animate-pulse' :

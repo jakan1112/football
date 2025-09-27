@@ -5,7 +5,7 @@ import MatchForm from './matchform';
 import MatchListAdmin from './matchlistadmin';
 import TeamListAdmin from './teamlistadmin';
 import { Team, Match } from '../types';
-import { addMatch, updateMatch, deleteMatch, addTeam, updateTeam, deleteTeam } from '../lib/data-service';
+import { addMatch, updateMatch, deleteMatch, addTeam, updateTeam, deleteTeam, getTeams, getMatches } from '../lib/supabase-service';
 
 interface AdminPanelProps {
   teams: Team[];
@@ -22,36 +22,59 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
 
   const handleAddTeam = async (teamData: Omit<Team, 'id'>) => {
-    const success = await addTeam(teamData);
-    if (success) {
-      // Refresh teams list
-      const updatedTeams = await getTeams();
-      setTeams(updatedTeams);
-      
-      if (editingTeam) {
+    if (editingTeam) {
+      const updatedTeam = await updateTeam(editingTeam.id, teamData);
+      if (updatedTeam) {
+        // Refresh teams list
+        const updatedTeams = await getTeams();
+        setTeams(updatedTeams);
         setEditingTeam(null);
+        setActiveTab('teams');
+      }
+    } else {
+      const newTeam = await addTeam(teamData);
+      if (newTeam) {
+        // Refresh teams list
+        const updatedTeams = await getTeams();
+        setTeams(updatedTeams);
         setActiveTab('teams');
       }
     }
   };
 
   const handleAddMatch = async (matchData: Omit<Match, 'id' | 'status' | 'homeScore' | 'awayScore' | 'lineups' | 'blogPosts'>) => {
-    const success = await addMatch(matchData);
-    if (success) {
-      // Refresh matches list
-      const updatedMatches = await getMatches();
-      setMatches(updatedMatches);
-      
-      if (editingMatch) {
+    const matchWithDefaults = {
+      ...matchData,
+      status: 'upcoming' as const,
+      homeScore: 0,
+      awayScore: 0,
+      lineups: { home: [], away: [] },
+      blogPosts: []
+    };
+
+    if (editingMatch) {
+      const updatedMatch = await updateMatch(editingMatch.id, matchData);
+      if (updatedMatch) {
+        // Refresh matches list
+        const updatedMatches = await getMatches();
+        setMatches(updatedMatches);
         setEditingMatch(null);
+        setActiveTab('matches');
+      }
+    } else {
+      const newMatch = await addMatch(matchWithDefaults);
+      if (newMatch) {
+        // Refresh matches list
+        const updatedMatches = await getMatches();
+        setMatches(updatedMatches);
         setActiveTab('matches');
       }
     }
   };
 
   const handleUpdateMatch = async (matchId: number, updates: Partial<Match>) => {
-    const success = await updateMatch(matchId, updates);
-    if (success) {
+    const updatedMatch = await updateMatch(matchId, updates);
+    if (updatedMatch) {
       // Refresh matches list
       const updatedMatches = await getMatches();
       setMatches(updatedMatches);
@@ -106,19 +129,8 @@ export default function AdminPanel({ teams, matches, setTeams, setMatches }: Adm
     cancelEditing();
   };
 
-  // Import get functions inside the component
-  const getTeams = async () => {
-    const { getTeams } = await import('../lib/data-service');
-    return await getTeams();
-  };
-
-  const getMatches = async () => {
-    const { getMatches } = await import('../lib/data-service');
-    return await getMatches();
-  };
-
   return (
-    <div>
+   <div>
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700 mb-6">
         <div className="container mx-auto px-4">

@@ -5,66 +5,85 @@ import { useState, useEffect } from 'react';
 import AdminLayout from './components/adminlayout';
 import ViewerPanel from './components/viewerpanel';
 import { Team, Match } from './types';
-import { getMatches, getTeams, testKVConnection } from './lib/data-service';
+import { getTeams, getMatches, testConnection } from './lib/supabase-service';
 
 export default function Home() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [storageType, setStorageType] = useState<'kv' | 'local'>('local');
+  const [error, setError] = useState<string | null>(null);
 
   const isAdminRoute = typeof window !== 'undefined' && window.location.pathname === '/admin';
 
-  // Load data and test connection
   useEffect(() => {
     const initializeData = async () => {
       try {
         setIsLoading(true);
-        
-        // Test KV connection first
-        const isKVConnected = await testKVConnection();
-        setStorageType(isKVConnected ? 'kv' : 'local');
-        
-        console.log(`Using storage: ${isKVConnected ? 'Vercel KV' : 'LocalStorage'}`);
-        
+        setError(null);
+
         // Load data
-        const [loadedMatches, loadedTeams] = await Promise.all([
-          getMatches(),
-          getTeams()
+        const [loadedTeams, loadedMatches] = await Promise.all([
+          getTeams(),
+          getMatches()
         ]);
         
-        setMatches(loadedMatches);
         setTeams(loadedTeams);
+        setMatches(loadedMatches);
         
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('Error initializing data:', error);
+        setError('Failed to load data. Please refresh the page.');
       } finally {
         setIsLoading(false);
       }
     };
 
     initializeData();
-  }, []);
 
-  // Save data when it changes
-  useEffect(() => {
-    if (matches.length > 0 || teams.length > 0) {
-      const saveData = async () => {
-        await Promise.all([
-          saveMatches(matches),
-          saveTeams(teams)
-        ]);
-      };
-      saveData();
-    }
-  }, [matches, teams]);
+    // Set up real-time subscriptions
+    const teamsSubscription = supabase
+      .channel('teams-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, () => {
+        getTeams().then(setTeams);
+      })
+      .subscribe();
+
+    const matchesSubscription = supabase
+      .channel('matches-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
+        getMatches().then(setMatches);
+      })
+      .subscribe();
+
+    return () => {
+      teamsSubscription.unsubscribe();
+      matchesSubscription.unsubscribe();
+    };
+  }, []);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-white text-xl mb-4">Loading Football Data...</div>
+          <div className="text-white text-xl mb-4">Loading Football Streams...</div>
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <div className="text-red-400 text-xl mb-4">Loading Error</div>
+          <div className="text-gray-300 mb-6">{error}</div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded font-medium"
+          >
+            Refresh Page
+          </button>
         </div>
       </div>
     );
@@ -72,13 +91,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Storage Indicator */}
-      <div className={`fixed top-4 right-4 px-3 py-1 rounded-full text-sm z-50 ${
-        storageType === 'kv' ? 'bg-green-600 text-white' : 'bg-yellow-600 text-black'
-      }`}>
-        {storageType === 'kv' ? '🟢 Cloud Sync' : '🟡 Local Storage'}
-      </div>
-
       {isAdminRoute ? (
         <AdminLayout 
           teams={teams}
@@ -96,5 +108,4 @@ export default function Home() {
   );
 }
 
-// Import save functions (add these at the top)
-import { saveMatches, saveTeams } from './lib/data-service';
+import { supabase } from './lib/supabase';
