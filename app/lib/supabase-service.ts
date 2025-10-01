@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import { Team, Match, BlogPost } from '../types';
 
 // Teams functions
+
 export async function getTeams(): Promise<Team[]> {
   try {
     const { data, error } = await supabase
@@ -88,7 +89,6 @@ export async function getMatches(): Promise<Match[]> {
 
     if (error) throw error;
     
-    // Convert from database format to app format
     return data.map(match => ({
       id: match.id,
       homeTeamId: match.home_team_id,
@@ -101,7 +101,8 @@ export async function getMatches(): Promise<Match[]> {
       awayScore: match.away_score,
       lineups: match.lineups,
       blogPosts: match.blog_posts,
-      league: match.league
+      league: match.league,
+      slug: match.slug // Include slug
     }));
   } catch (error) {
     console.error('Error getting matches:', error);
@@ -109,9 +110,21 @@ export async function getMatches(): Promise<Match[]> {
   }
 }
 
-export async function addMatch(matchData: Omit<Match, 'id'>): Promise<Match | null> {
+// lib/supabase-service.ts
+// Update your addMatch function:
+export async function addMatch(matchData: Omit<Match, 'id' | 'slug'>): Promise<Match | null> {
   try {
-    // Convert to database format
+    const teams = await getTeams();
+    const homeTeam = teams.find(t => t.id === matchData.homeTeamId);
+    const awayTeam = teams.find(t => t.id === matchData.awayTeamId);
+    
+    if (!homeTeam || !awayTeam) {
+      throw new Error('Teams not found');
+    }
+
+    // Generate SEO-friendly URL slug
+    const slug = `${homeTeam.name.toLowerCase().replace(/ /g, '-')}-vs-${awayTeam.name.toLowerCase().replace(/ /g, '-')}-${new Date(matchData.date).getFullYear()}`;
+    
     const dbMatch = {
       home_team_id: matchData.homeTeamId,
       away_team_id: matchData.awayTeamId,
@@ -123,7 +136,8 @@ export async function addMatch(matchData: Omit<Match, 'id'>): Promise<Match | nu
       away_score: matchData.awayScore,
       lineups: matchData.lineups,
       blog_posts: matchData.blogPosts,
-      league: matchData.league
+      league: matchData.league,
+      slug: slug // Add the slug
     };
 
     const { data, error } = await supabase
@@ -138,7 +152,6 @@ export async function addMatch(matchData: Omit<Match, 'id'>): Promise<Match | nu
 
     if (error) throw error;
     
-    // Convert back to app format
     return {
       id: data.id,
       homeTeamId: data.home_team_id,
@@ -151,7 +164,8 @@ export async function addMatch(matchData: Omit<Match, 'id'>): Promise<Match | nu
       awayScore: data.away_score,
       lineups: data.lineups,
       blogPosts: data.blog_posts,
-      league: data.league
+      league: data.league,
+      slug: data.slug // Include slug in return
     };
   } catch (error) {
     console.error('Error adding match:', error);
@@ -159,6 +173,49 @@ export async function addMatch(matchData: Omit<Match, 'id'>): Promise<Match | nu
   }
 }
 
+// Update getMatches to include slug
+
+
+// Add function to get match by slug
+// lib/supabase-service.ts - Update getMatchBySlug
+export async function getMatchBySlug(slug: string): Promise<Match | null> {
+  try {
+    const { data, error } = await supabase
+      .from('matches')
+      .select(`
+        *,
+        home_team:teams!home_team_id(id, name, logo, country),
+        away_team:teams!away_team_id(id, name, logo, country)
+      `)
+      .eq('slug', slug)
+      .single();
+
+    if (error) throw error;
+    
+    // Return the data with team information included
+    return {
+      id: data.id,
+      homeTeamId: data.home_team_id,
+      awayTeamId: data.away_team_id,
+      date: data.date,
+      time: data.time,
+      streamEmbed: data.stream_embed,
+      status: data.status,
+      homeScore: data.home_score,
+      awayScore: data.away_score,
+      lineups: data.lineups,
+      blogPosts: data.blog_posts,
+      league: data.league,
+      slug: data.slug,
+      // Include the actual team data
+      homeTeam: data.home_team,
+      awayTeam: data.away_team
+    };
+  } catch (error) {
+    console.error('Error getting match by slug:', error);
+    return null;
+  }
+}
 export async function updateMatch(matchId: number, updates: Partial<Match>): Promise<Match | null> {
   try {
     // Convert to database format
@@ -201,7 +258,8 @@ export async function updateMatch(matchId: number, updates: Partial<Match>): Pro
       awayScore: data.away_score,
       lineups: data.lineups,
       blogPosts: data.blog_posts,
-      league: data.league
+      league: data.league,
+       slug: data.slug
     };
   } catch (error) {
     console.error('Error updating match:', error);

@@ -6,10 +6,17 @@ export interface Team {
   country: string;
 }
 
+// types/index.ts
 export interface Match {
   id: number;
   homeTeamId: number;
   awayTeamId: number;
+    homeTeamName?: string;
+  awayTeamName?: string;
+  homeTeamLogo?: string;
+  awayTeamLogo?: string;
+
+
   date: string;
   time: string;
   streamEmbed: string;
@@ -22,6 +29,9 @@ export interface Match {
   };
   blogPosts: BlogPost[];
   league?: string;
+  slug: string; // Add this line
+   homeTeam?: Team;
+  awayTeam?: Team;
 }
 
 export interface BlogPost {

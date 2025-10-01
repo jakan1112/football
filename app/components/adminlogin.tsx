@@ -105,7 +105,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         {/* Demo credentials hint */}
         <div className="mt-6 p-3 bg-gray-700 rounded-lg">
           <p className="text-xs text-gray-400 text-center">
-            Demo: admin@footballstream.com / yallasirajshoot@jazz
+            
           </p>
         </div>
       </div>

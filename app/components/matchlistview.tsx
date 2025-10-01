@@ -1,6 +1,7 @@
 // components/MatchListView.tsx
 import { useState } from 'react';
 import { Match, Team } from '../types';
+import Link from 'next/link';
 
 interface MatchListViewProps {
   matches: Match[];
@@ -179,9 +180,15 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
                     return (
                       <div
                         key={match.id}
-                        onClick={() => onMatchSelect(match.id)}
+                        onClick={() =><Link href={`/match/${match.slug}`} className="block">
+  
+  Watch Match
+</Link>}
                         className="p-4 hover:bg-gray-750 cursor-pointer transition-colors"
                       >
+                        <Link href={`/match/${match.slug}`} className="block">
+
+
                         <div className="flex items-center justify-between mb-2">
                           <span className={`text-sm font-medium ${getStatusColor(match)}`}>
                             {getMatchStatusText(match)}
@@ -228,10 +235,12 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
 
                         {/* Watch Button */}
                         <div className="flex justify-center mt-3">
+                          
                           <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full text-sm font-medium transition-colors">
                             {match.status === 'live' ? '🔴 Watch Live' : 'Watch Match'}
                           </button>
                         </div>
+                      </Link>
                       </div>
                     );
                   })}
