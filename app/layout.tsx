@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://yourdomain.com'), // Replace with your domain
+  metadataBase: new URL('https://.footballstreams.live'), // Replace with your domain
   alternates: {
     canonical: '/',
   },
@@ -62,6 +62,17 @@ export const metadata: Metadata = {
   verification: {
     // Add your Google Search Console verification here
     // google: 'your-verification-code',
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.png' },
+      { url: '/favicon.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/favicon.png' },
+    ],
+    shortcut: ['/favicon.ico'],
   },
 };
 
