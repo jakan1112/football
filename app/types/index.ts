@@ -56,4 +56,5 @@ export interface MatchFormData {
   time: string;
   streamEmbed: string;
   league?: string;
+  slug?: string; // Make slug optional for forms
 }
