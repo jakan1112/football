@@ -10,7 +10,7 @@ interface MatchPageProps {
   };
 }
 
-// This tells Next.js which pages to pre-generate
+
 export async function generateStaticParams() {
   try {
     const matches = await getMatches();

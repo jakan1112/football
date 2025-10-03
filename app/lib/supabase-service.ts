@@ -178,6 +178,7 @@ export async function addMatch(matchData: Omit<Match, 'id' | 'slug'>): Promise<M
 
 // Add function to get match by slug
 // lib/supabase-service.ts - Update getMatchBySlug
+// lib/supabase-service.ts - Update getMatchBySlug
 export async function getMatchBySlug(slug: string): Promise<Match | null> {
   try {
     const { data, error } = await supabase
@@ -190,9 +191,16 @@ export async function getMatchBySlug(slug: string): Promise<Match | null> {
       .eq('slug', slug)
       .single();
 
+    // Handle "no rows" error gracefully
+    if (error && error.code === 'PGRST116') {
+      console.log(`No match found with slug: ${slug}`);
+      return null;
+    }
+
     if (error) throw error;
     
-    // Return the data with team information included
+    if (!data) return null;
+
     return {
       id: data.id,
       homeTeamId: data.home_team_id,
@@ -207,7 +215,6 @@ export async function getMatchBySlug(slug: string): Promise<Match | null> {
       blogPosts: data.blog_posts,
       league: data.league,
       slug: data.slug,
-      // Include the actual team data
       homeTeam: data.home_team,
       awayTeam: data.away_team
     };
