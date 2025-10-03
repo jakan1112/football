@@ -84,6 +84,24 @@ export default function AdminPanel({ teams = [], matches = [], setTeams, setMatc
       setIsLoading(false);
     }
   };
+// SIMPLEST FIX: Create a wrapper function
+type MatchFormData = {
+  homeTeamId: number;
+  awayTeamId: number;
+  date: string;
+  slug?: string;
+  [key: string]: any; // Add other fields as needed
+};
+
+const handleMatchFormSubmit = async (formData: Omit<MatchFormData, 'homeTeamId' | 'awayTeamId'> & { homeTeamId: number; awayTeamId: number; }) => {
+  // Convert to the format handleAddMatch expects
+  const matchData = {
+    ...formData,
+    slug: formData.slug || '' // Provide default empty slug
+  } as Omit<Match, 'id' | 'status' | 'homeScore' | 'awayScore' | 'lineups' | 'blogPosts'>;
+  
+  await handleAddMatch(matchData);
+};
 
   const handleUpdateMatch = async (matchId: number, updates: Partial<Match>) => {
     setIsLoading(true);
@@ -244,12 +262,12 @@ export default function AdminPanel({ teams = [], matches = [], setTeams, setMatc
                 </div>
               </div>
             )}
-            <MatchForm 
-              teams={teams} 
-              onSubmit={handleAddMatch}
-              editingMatch={editingMatch}
-              isLoading={isLoading}
-            />
+          <MatchForm 
+  teams={teams} 
+  onSubmit={handleMatchFormSubmit}
+  editingMatch={editingMatch}
+  isLoading={isLoading}
+/>
           </div>
         )}
 
