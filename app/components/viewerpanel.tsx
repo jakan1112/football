@@ -18,9 +18,9 @@ export default function ViewerPanel({ teams, matches }: ViewerPanelProps) {
     return (
       <MatchDetailView
         match={selectedMatch}
-        homeTeam={teams.find(team => team.id === selectedMatch.homeTeamId)}
-        awayTeam={teams.find(team => team.id === selectedMatch.awayTeamId)}
-        onBack={() => setSelectedMatchId(null)}
+      
+       
+       
       />
     );
   }

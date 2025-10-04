@@ -1,11 +1,12 @@
-// app/page.tsx
+// app/page.tsx - FIXED VERSION
 'use client';
 
 import { useState, useEffect } from 'react';
 import AdminLayout from './components/adminlayout';
 import ViewerPanel from './components/viewerpanel';
 import { Team, Match } from './types';
-import { getTeams, getMatches, testConnection } from './lib/supabase-service';
+import { getTeams, getMatches } from './lib/supabase-service';
+import { supabase } from './lib/supabase'; // ADD THIS IMPORT
 
 export default function Home() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -107,5 +108,3 @@ export default function Home() {
     </div>
   );
 }
-
-import { supabase } from './lib/supabase';
