@@ -68,7 +68,7 @@ export async function fetchFootballMatches(): Promise<APIMatch[]> {
   return allMatches;
 }
 
-export async function getAvailableLeagues(matches: APIMatch[]): string[] {
+export async function getAvailableLeagues(matches: APIMatch[]): Promise<string[]> {
   const leagues = Array.from(new Set(matches.map((m) => m.competition.name))).sort();
   return leagues;
 }
