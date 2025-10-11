@@ -7,8 +7,9 @@ import MatchListAdmin from './matchlistadmin';
 import TeamListAdmin from './teamlistadmin';
 import { Team, Match } from '../types';
 import { addMatch, updateMatch, deleteMatch, addTeam, updateTeam, deleteTeam, getTeams, getMatches } from '../lib/supabase-service';
+import AutoMatchGenerator from './AutoMatchGenerator';
 
-type AdminTab = 'matches' | 'add-match' | 'teams' | 'add-team';
+type AdminTab = 'matches' | 'add-match' | 'teams' | 'add-team' |'auto-generate';
 
 interface AdminPanelProps {
   teams?: Team[];
@@ -230,6 +231,14 @@ const handleMatchFormSubmit = async (formData: Omit<MatchFormData, 'homeTeamId' 
             >
               ➕ {editingTeam ? 'Edit Team' : 'Add Team'}
             </button>
+            <button 
+  className={`py-3 px-4 font-medium whitespace-nowrap border-b-2 transition-colors ${
+    activeTab === 'auto-generate' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-white'
+  }`}
+  onClick={() => handleTabChange('auto-generate')}
+>
+  🤖 Auto Generate
+</button>
           </div>
         </div>
       </div>
@@ -301,6 +310,12 @@ const handleMatchFormSubmit = async (formData: Omit<MatchFormData, 'homeTeamId' 
             />
           </div>
         )}
+        {activeTab === 'auto-generate' && (
+  <AutoMatchGenerator onMatchesAdded={() => {
+    // Refresh matches list
+    getMatches().then(setMatches);
+  }} />
+)}
       </div>
     </div>
   );

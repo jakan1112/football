@@ -3,30 +3,8 @@ import { supabase } from './supabase';
 import { Team, Match, BlogPost } from '../types';
 
 // Teams functions
-
-export async function getTeams(): Promise<Team[]> {
-  try {
-    const { data, error } = await supabase
-      .from('teams')
-      .select('*')
-      .order('name');
-
-    if (error) throw error;
-    
-    // Convert from database format to app format
-    return data.map(team => ({
-      id: team.id,
-      name: team.name,
-      logo: team.logo,
-      country: team.country
-    }));
-  } catch (error) {
-    console.error('Error getting teams:', error);
-    return [];
-  }
-}
-
-export async function addTeam(teamData: Omit<Team, 'id'>): Promise<Team | null> {
+// Add to lib/supabase-service.ts if not already there
+export async function addTeamapi(teamData: Omit<Team, 'id'>): Promise<Team | null> {
   try {
     const { data, error } = await supabase
       .from('teams')
@@ -41,6 +19,84 @@ export async function addTeam(teamData: Omit<Team, 'id'>): Promise<Team | null> 
     return null;
   }
 }
+// lib/supabase-service.ts - UPDATE addTeam function (Backward Compatible)
+export async function addTeam(teamData: Partial<Team>): Promise<Team | null> {
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .insert([
+        {
+          // Required fields (existing)
+          name: teamData.name,
+          logo: teamData.logo,
+          country: teamData.country,
+          
+          // New optional fields
+          
+          created_at: new Date().toISOString(),
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding team:', error);
+      return null;
+    }
+
+    // Transform back to Team interface - BACKWARD COMPATIBLE
+    return {
+      id: data.id,
+      name: data.name,
+      logo: data.logo,
+      country: data.country,
+      // New fields
+     
+     
+    };
+  } catch (error) {
+    console.error('Error in addTeam:', error);
+    return null;
+  }
+}
+
+// Also update getTeams to include new fields
+
+export async function getTeams(): Promise<Team[]> {
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .select('*')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching teams:', error);
+      return [];
+    }
+
+    // SIMPLIFIED - Only map fields that actually exist in your database
+    return data.map(team => ({
+      id: team.id,
+      name: team.name,
+      logo: team.logo,
+      country: team.country,
+      // Remove the new fields that don't exist in your database
+      // shortName: team.short_name, // This field doesn't exist
+      // tla: team.tla, // This field doesn't exist
+      // crest: team.crest, // This field doesn't exist
+      // founded: team.founded, // This field doesn't exist
+      // venue: team.venue, // This field doesn't exist
+      // website: team.website, // This field doesn't exist
+      // colors: team.colors, // This field doesn't exist
+      // createdAt: team.created_at, // This field doesn't exist
+    }));
+  } catch (error) {
+    console.error('Error in getTeams:', error);
+    return [];
+  }
+}
+
+
 
 export async function updateTeam(teamId: number, updates: Partial<Team>): Promise<Team | null> {
   try {
