@@ -653,7 +653,7 @@ function getCountryFromLeague(leagueName?: string): string {
                     selectsEnd
                     startDate={startDate}
                     endDate={endDate}
-                    minDate={startDate}
+                    minDate={startDate ?? undefined}
                     className="px-3 py-1 bg-gray-600 rounded text-white text-sm"
                     placeholderText="End date"
                   />
