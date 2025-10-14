@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Match, Team } from '../types';
 import Link from 'next/link';
-
+import AdUnit from './adUnit';
 interface MatchListViewProps {
   matches: Match[];
   teams: Team[];
@@ -64,6 +64,7 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+      <AdUnit />
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700">
         <div className="container mx-auto px-4 py-6">
