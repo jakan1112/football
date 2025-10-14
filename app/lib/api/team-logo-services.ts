@@ -54,15 +54,14 @@ function getCountryFromCompetition(competition: any): string {
 
 // Get logo from API team data - USE THE ACTUAL CREST FROM API
 function getTeamLogo(teamData: any): string {
-  console.log(`🔍 Team data for logo:`, teamData);
+ 
   
   // Use the crest URL from the API if available
   if (teamData.crest) {
-    console.log(`✅ Using API crest: ${teamData.crest}`);
+    
     return teamData.crest;
   }
   
-  console.log(`❌ No crest in API data, using default`);
   return DEFAULT_LOGO;
 }
 
@@ -86,19 +85,14 @@ function createTeamData(teamData: any, competition: any): Partial<Team> {
 
 // AUTO-REGISTER TEAMS USING API DATA
 export async function autoRegisterTeams(matches: APIMatch[]): Promise<Team[]> {
-  console.log('🔍 Starting autoRegisterTeams with matches:', matches.length);
+  
   
   const registeredTeams: Team[] = [];
   const uniqueTeams = new Map<string, { teamData: any; competition: any }>();
   
   // Extract unique teams from matches WITH THEIR API DATA
   matches.forEach((match) => {
-    console.log(`📝 Processing match:`, {
-      homeTeam: match.homeTeam?.name,
-      awayTeam: match.awayTeam?.name,
-      homeCrest: match.homeTeam?.crest,
-      awayCrest: match.awayTeam?.crest
-    });
+  
     
     if (match.homeTeam?.name) {
       uniqueTeams.set(match.homeTeam.name, {
@@ -115,16 +109,16 @@ export async function autoRegisterTeams(matches: APIMatch[]): Promise<Team[]> {
     }
   });
   
-  console.log(`📊 Found ${uniqueTeams.size} unique teams for registration`);
+ 
   
   if (uniqueTeams.size === 0) {
-    console.log('⚠️ No teams found to register');
+   
     return [];
   }
   
   // Get existing teams once
   const existingTeams = await getTeams();
-  console.log(`📋 Found ${existingTeams.length} existing teams in database`);
+ 
   
   // Register each team that doesn't exist
   for (const [teamName, { teamData, competition }] of uniqueTeams.entries()) {
@@ -133,11 +127,10 @@ export async function autoRegisterTeams(matches: APIMatch[]): Promise<Team[]> {
       const exists = existingTeams.find(t => t.name === teamName);
       
       if (exists) {
-        console.log(`✅ Team already exists: ${teamName} (ID: ${exists.id})`);
+      
         registeredTeams.push(exists);
       } else {
-        console.log(`➕ Registering new team: ${teamName}`);
-        console.log(`🏷️ Team data from API:`, teamData);
+       
         
         // Create team data USING API TEAM DATA
         const teamToRegister = createTeamData(teamData, competition);
@@ -146,18 +139,18 @@ export async function autoRegisterTeams(matches: APIMatch[]): Promise<Team[]> {
         const newTeam = await addTeam(teamToRegister);
         
         if (newTeam) {
-          console.log(`🎉 Successfully registered: ${teamName} (ID: ${newTeam.id})`);
+         
           registeredTeams.push(newTeam);
         } else {
-          console.error(`❌ Failed to register: ${teamName}`);
+         
         }
       }
     } catch (error) {
-      console.error(`💥 Error processing team ${teamName}:`, error);
+     
     }
   }
   
-  console.log(`🏁 Registration complete: ${registeredTeams.length} teams available`);
+  
   return registeredTeams;
 }
 
@@ -169,34 +162,33 @@ export async function getOrCreateTeam(
   const teamName = teamData.name;
   
   try {
-    console.log(`🔍 Looking for team: "${teamName}"`);
-    console.log(`🏷️ Team data:`, teamData);
+    
     
     // Check if team exists
     const existingTeams = await getTeams();
     const existingTeam = existingTeams.find(t => t.name === teamName);
     
     if (existingTeam) {
-      console.log(`✅ Team found: "${teamName}" (ID: ${existingTeam.id})`);
+     
       return existingTeam.id;
     }
     
     // Team doesn't exist, create it WITH API DATA
-    console.log(`➕ Creating new team: "${teamName}"`);
+   
     const teamToRegister = createTeamData(teamData, competition);
     
     const newTeam = await addTeam(teamToRegister);
     
     if (newTeam) {
-      console.log(`🎉 Team created: "${teamName}" (ID: ${newTeam.id})`);
+      
       return newTeam.id;
     } else {
-      console.error(`❌ Failed to create team: "${teamName}"`);
+    
       return -1;
     }
     
   } catch (error) {
-    console.error(`💥 Error in getOrCreateTeam for "${teamName}":`, error);
+   
     return -1;
   }
 }

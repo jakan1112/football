@@ -48,23 +48,23 @@ export async function fetchFootballMatches(): Promise<APIMatch[]> {
       });
       
       if (!res.ok) {
-        console.log(`❌ ${league.name}: ${res.status}`);
+       
         continue;
       }
 
       const data = await res.json();
       const matches = data.matches || [];
       
-      console.log(`✅ ${league.name}: ${matches.length} matches loaded`);
+     
       allMatches = allMatches.concat(matches);
       
     } catch (error) {
-      console.error(`💥 Error fetching ${league.name}:`, error);
+     
       continue;
     }
   }
 
-  console.log(`📊 Total matches fetched: ${allMatches.length}`);
+  
   return allMatches;
 }
 
