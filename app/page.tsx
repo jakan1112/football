@@ -15,6 +15,14 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const isAdminRoute = typeof window !== 'undefined' && window.location.pathname === '/admin';
+  const adScript = 
+    (function(){
+      var script = document.createElement('script');
+      script.src = 'https://example-ad-network.com/ads.js';
+      script.async = true;
+      document.body.appendChild(script);
+    })();
+  
 
   useEffect(() => {
     const initializeData = async () => {
