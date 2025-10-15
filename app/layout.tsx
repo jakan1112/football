@@ -103,8 +103,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <MonetagPopunder />
-      <body className={inter.className}>{children}</body>
+      
+      <body className={inter.className}>{children}
+        <MonetagPopunder />
+      </body>
     </html>
   );
 }
