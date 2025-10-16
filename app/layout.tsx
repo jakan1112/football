@@ -2,7 +2,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import MonetagPopunder from './components/monetagad';
+import Script from 'next/script';
 
 
 const inter = Inter({ subsets: ['latin'] });
@@ -104,7 +104,26 @@ export default function RootLayout({
         />
       </head>
       
-      <body className={inter.className}>{children}
+      <body className={inter.className}>
+        <Script
+          id="monetag-pounder"
+          strategy="beforeInteractive"
+          data-zone="10038316"
+          src="https://al5sm.com/tag.min.js"
+        />
+        <Script
+          id="monetag-native-banner" 
+          strategy="beforeInteractive"
+          data-zone="10038314"
+          src="https://al5sm.com/tag.min.js"
+        />
+        <Script
+          id="monetag-inpage-push"
+          strategy="beforeInteractive" 
+          data-zone="10038306"
+          src="https://al5sm.com/tag.min.js"
+        />
+        {children}
        
       </body>
     </html>

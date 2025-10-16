@@ -2,7 +2,10 @@
 import { useState } from 'react';
 import { Match, Team } from '../types';
 import Link from 'next/link';
-import MonetagPopunder from './monetagad';
+
+import NativeBannerAd from './ads/NativeBannerAd';
+import InPagePushAd from './ads/InPagePushAd';
+import PounderAd from './ads/PounderAd';
 
 interface MatchListViewProps {
   matches: Match[];
@@ -65,14 +68,15 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
-      
+      <InPagePushAd/>
+      <PounderAd/>
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center mb-6">
           
-<h1 className="text-2xl font-bold text-white mb-2">Free Football Live Stream</h1>
-<p className="text-gray-300">Watch live football matches for free</p>
+        <h1 className="text-2xl font-bold text-white mb-2">Free Football Live Stream</h1>
+         <p className="text-gray-300">Watch live football matches for free</p>
           </div>
 
           {/* Time Filters */}
@@ -150,13 +154,16 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
 
       {/* Matches List */}
       <div className="container mx-auto px-4 py-6">
+        
         {Object.keys(matchesByDate).length === 0 ? (
           <div className="text-center py-16">
+            <NativeBannerAd />
             <div className="text-gray-400 text-lg">No matches found</div>
             <p className="text-gray-500 mt-2">No matches match the selected filters</p>
           </div>
         ) : (
           <div className="space-y-6">
+            <NativeBannerAd />
             {Object.entries(matchesByDate).map(([date, dateMatches]) => (
               <div key={date} className="bg-gray-800 rounded-lg overflow-hidden">
                 {/* Date Header */}
@@ -172,7 +179,7 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
                 </div>
 
                 {/* Matches List */}
-                <div className="divide-y divide-gray-700">
+                <div className="divide-y divide-gray-700"><NativeBannerAd />
                   {dateMatches.map(match => {
                     const homeTeam = getTeam(match.homeTeamId);
                     const awayTeam = getTeam(match.awayTeamId);
