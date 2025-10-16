@@ -1,4 +1,5 @@
 // components/MonatagAd.js
+"use client";
 import { useEffect } from 'react';
 
 export default function MonatagAd() {
