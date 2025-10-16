@@ -7,7 +7,9 @@ import ViewerPanel from './components/viewerpanel';
 import { Team, Match } from './types';
 import { getTeams, getMatches } from './lib/supabase-service';
 import { supabase } from './lib/supabase'; // ADD THIS IMPORT
-import MonetagPopunder from './components/monetagad';
+import NativeBannerAd from './components/ads/NativeBannerAd';
+import InPagePushAd from './components/ads/InPagePushAd';
+import PounderAd from './components/ads/PounderAd';
 
 export default function Home() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -93,7 +95,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-       <MonetagPopunder />
+        <NativeBannerAd />
+         
       {isAdminRoute ? (
         <AdminLayout 
           teams={teams}

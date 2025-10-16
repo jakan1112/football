@@ -65,7 +65,7 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
-       <MonetagPopunder />
+      
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700">
         <div className="container mx-auto px-4 py-6">
