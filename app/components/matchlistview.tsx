@@ -179,7 +179,7 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
                 </div>
 
                 {/* Matches List */}
-                <div className="divide-y divide-gray-700"><NativeBannerAd />
+                <div className="divide-y divide-gray-700">
                   {dateMatches.map(match => {
                     const homeTeam = getTeam(match.homeTeamId);
                     const awayTeam = getTeam(match.awayTeamId);
