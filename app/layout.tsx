@@ -105,7 +105,24 @@ export default function RootLayout({
       </head>
       
       <body className={inter.className}>
-     
+        <Script
+          id="monetag-pounder"
+          strategy="beforeInteractive"
+          data-zone="10038316"
+          src="https://al5sm.com/tag.min.js"
+        />
+        <Script
+          id="monetag-native-banner" 
+          strategy="beforeInteractive"
+          data-zone="10038314"
+          src="https://al5sm.com/tag.min.js"
+        />
+        <Script
+          id="monetag-inpage-push"
+          strategy="beforeInteractive" 
+          data-zone="10038306"
+          src="https://al5sm.com/tag.min.js"
+        />
         {children}
        
       </body>
