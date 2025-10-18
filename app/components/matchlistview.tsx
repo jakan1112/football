@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { Match, Team } from '../types';
 import Link from 'next/link';
 
-import NativeBannerAd from './ads/NativeBannerAd';
+// import NativeBannerAd from './ads/NativeBannerAd';
 import InPagePushAd from './ads/InPagePushAd';
-import PounderAd from './ads/PounderAd';
+// import PounderAd from './ads/PounderAd';
 
 interface MatchListViewProps {
   matches: Match[];
@@ -69,7 +69,7 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
       <InPagePushAd/>
-      <PounderAd/>
+      {/* <PounderAd/> */}
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700">
         <div className="container mx-auto px-4 py-6">
@@ -157,13 +157,13 @@ export default function MatchListView({ matches, teams, onMatchSelect }: MatchLi
         
         {Object.keys(matchesByDate).length === 0 ? (
           <div className="text-center py-16">
-            <NativeBannerAd />
+            {/* <NativeBannerAd /> */}
             <div className="text-gray-400 text-lg">No matches found</div>
             <p className="text-gray-500 mt-2">No matches match the selected filters</p>
           </div>
         ) : (
           <div className="space-y-6">
-            <NativeBannerAd />
+           
             {Object.entries(matchesByDate).map(([date, dateMatches]) => (
               <div key={date} className="bg-gray-800 rounded-lg overflow-hidden">
                 {/* Date Header */}
